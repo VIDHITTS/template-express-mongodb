@@ -1,14 +1,23 @@
 const jwt = require('jsonwebtoken')
-
+const argon2 = require('argon2')
 const User = require('../models/user').model
 
 exports.login_post = async (req, res) => {
   const { email, password, type } = req.body
 
-  User.findOne({ email, password, type })
+  User.findOne({ email, type })
     .lean()
-    .then(user => {
+    .then(async user => {
       if (user) {
+        // Verify the password against the hash
+        const isValid = await argon2.verify(user.password, password)
+
+        if (!isValid) {
+          return res.send({
+            status: false
+          })
+        }
+
         // Create a token
         const payload = { user }
         const options = {

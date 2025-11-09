@@ -1,4 +1,5 @@
 const User = require('../models/user').model
+const argon2 = require('argon2')
 
 exports.list_get = (req, res) => {
   const { type } = req.query
@@ -40,13 +41,14 @@ exports.details_get = (req, res) => {
     })
 }
 
-exports.create_post = (req, res) => {
+exports.create_post = async(req, res) => {
   const { name, email, password, type } = req.body
+  const hashedPassword = await argon2.hash(password)
 
   let newUser = new User({
     name,
     email,
-    password,
+    password: hashedPassword,
     type
   })
 
